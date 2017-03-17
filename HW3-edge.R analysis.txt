@@ -1,0 +1,82 @@
+ cd
+ git clone https://github.com/ctb/2017-ucdavis-igg201b.git
+
+ sudo Rscript --no-save ~/2017-ucdavis-igg201b/lab7/install-edgeR.R
+ cd
+ curl -L -O https://github.com/COMBINE-lab/salmon/releases/download/v0.8.0/Salmon-0.8.0_linux_x86_64.tar.gz
+ tar xzf Salmon-0.8.0_linux_x86_64.tar.gz
+ export PATH=$PATH:$HOME/Salmon-latest_linux_x86_64/bin
+ mkdir yeast
+ cd yeast
+
+#mutants
+ curl -O ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR458/ERR458500/ERR458500.fastq.gz
+ curl -O ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR458/ERR458501/ERR458501.fastq.gz
+ curl -O ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR458/ERR458502/ERR458502.fastq.gz
+#added mutants - These are the same lane as first two, different bio rep
+ curl -O ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR458/ERR458507/ERR458507.fastq.gz
+ curl -O ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR458/ERR458508/ERR458508.fastq.gz
+
+#wt
+ curl -O ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR458/ERR458493/ERR458493.fastq.gz
+ curl -O ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR458/ERR458494/ERR458494.fastq.gz
+ curl -O ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR458/ERR458495/ERR458495.fastq.gz
+#added WT - These are the same lane as first two, different bio rep
+ curl -O ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR458/ERR458878/ERR458878.fastq.gz
+ curl -O ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR458/ERR458879/ERR458879.fastq.gz
+
+
+ curl -O http://downloads.yeastgenome.org/sequence/S288C_reference/orf_dna/orf_coding.fasta.gz
+ salmon index --index yeast_orfs --type quasi --transcripts orf_coding.fasta.gz
+ for i in *.fastq.gz
+ do
+     salmon quant -i yeast_orfs --libType U -r $i -o $i.quant --seqBias --gcBias
+ done
+
+ curl -L -O https://github.com/ngs-docs/2016-aug-nonmodel-rnaseq/raw/master/files/gather-counts.py
+ python2 gather-counts.py
+ 
+ curl -L -O https://raw.githubusercontent.com/zliechty/g201-b-Homework/master/yeast.salmon.Zach.R.txt
+ Rscript --no-save yeast.salmon.Zach.R.txt
+ mv yeast-edgeR.csv yeast-edgeR.10.csv
+ curl -O https://raw.githubusercontent.com/ctb/2017-ucdavis-igg201b/master/lab8/yeast-edgeR.csv
+ mv yeast-edgeR.csv yeast-edgeR.6.csv
+
+R
+yeast10 <- read.csv(file='./yeast-edgeR.10.csv', row.names = 1)
+yeast6 <- read.csv(file='./yeast-edgeR.6.csv', row.names = 1)
+de.genes6 <- subset(yeast6, FDR < 0.05)
+de.genes10 <- subset(yeast10, FDR < 0.05)
+dim(de.genes6)
+dim(de.genes10)
+de.genes6.up <- subset(de.genes6, logFC > 0)
+de.genes10.up <- subset(de.genes10, logFC > 0)
+dim(de.genes6.up)
+dim(de.genes10.up)
+write.table(de.genes6, file ='./de.genes6',sep='\t')
+
+write.table(de.genes10, file ='./de.genes10',sep='\t')
+quit()
+
+#The MDS plot with 10 samples shows a similar trend as the one with 6; the mutants cluster together on the
+#right side, and the wt cluster on the other, though they are more broadly spread along the second axis.
+#it appears that the separation on the second axis is due to which biological replication the sample comes
+#from. The samples I added in were from the same sequencing lane, but different biological replicates, so
+
+#that we could see the effect of biological variation on our gene expression.
+#as far as the numbers of differentially expressed genes, using a FDR cutoff of 0.05, I found 4030 in the
+#sample with 6 replicates, and 2940 in the samples with 10 replicates. This makes sense to me, because adding
+#in a biological replicate would increase the amount of variation within each treatment, and an increased
+#variation means less statistical certainty in calling differences.
+
+#it appears looking only at the upregulated genes, 559/2940 are up regulated in the 10 rep analysis, whereas
+# 3470/4030 are upregulated in the 6 rep analysis. Since that is a much smaller fraction, it appears that
+#a lot of the lost differentially expressed genes are ones marked as upregulated in the 6 rep analysis.
+
+#using a website venn-diagram tool (http://bioinfogp.cnb.csic.es/tools/venny/) I was able to see how many genes
+#overlapped between these two groups. Of all differentially expressed genes at an FDR of 0.05, 1327 were
+#unique to the 6 rep analysis, 237 were unique to the 10 rep analysis, and 2703 were shared between both
+#of them. This means that in total, 1327 genes were lost by adding the reps, and 237 genes were gained
+#by adding the extra reps.
+
+#note:in my github repository, I have included my altered R script
