@@ -4,16 +4,16 @@ files <- c(
 "ERR458493.fastq.gz.quant.counts",
 "ERR458494.fastq.gz.quant.counts",
 "ERR458495.fastq.gz.quant.counts",
-"ERR458496.fastq.gz.quant.counts",
-"ERR458497.fastq.gz.quant.counts",
+"ERR458507.fastq.gz.quant.counts",
+"ERR458508.fastq.gz.quant.counts",
 "ERR458500.fastq.gz.quant.counts",
 "ERR458501.fastq.gz.quant.counts",
 "ERR458502.fastq.gz.quant.counts",
-"ERR458503.fastq.gz.quant.counts",
-"ERR458504.fastq.gz.quant.counts"
+"ERR458878.fastq.gz.quant.counts",
+"ERR458879.fastq.gz.quant.counts"
 )
 
-labels=c("ERR458493", "ERR458494", "ERR458495", "ERR458496", "ERR458497", "ERR458500", "ERR458501", "ERR458502", "ERR458503", "ERR458504")
+labels=c("MT_ERR458493", "MT_ERR458494", "MT_ERR458495", "MT_ERR458507", "MT_ERR458508", "WT_ERR458500", "WT_ERR458501", "WT_ERR458502", "WT_ERR458878", "WT_ERR458879")
 
 data <- readDGE(files)
 
@@ -21,7 +21,7 @@ print(data)
 
 ###
 
-group <- c(rep("wt", 5), rep("mut", 5))
+group <- c(rep("mut", 5), rep("wt", 5))
 
 dge = DGEList(counts=data, group=group)
 dge <- estimateCommonDisp(dge)
